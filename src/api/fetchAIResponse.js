@@ -12,11 +12,18 @@ export async function fetchAIResponse({ userId, message }) {
       body: JSON.stringify({ userId, message }),
     });
 
+    if (!response.ok) {
+      throw new Error(
+        "The LLM reached its token limit. Please try again after sometime."
+      );
+    }
+
     const finalResponse = await response.json();
+    // if (Object.keys(finalResponse).length === 0)
+    //   return "The LLM reached its token limit. Please try again after sometime.";
     return finalResponse.data;
   } catch (error) {
-    console.log(error);
-    if (error.status === "500")
-      return "The LLM reached its token limit. Please try again after sometime.";
+    console.error(error?.message);
+    return error?.message;
   }
 }

@@ -19,6 +19,9 @@ export const Chatbot = () => {
   const navigate = useNavigate();
   const authToken = useAuth();
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [messages, setMessages] = useState([
     {
       role: "model",
@@ -42,30 +45,39 @@ export const Chatbot = () => {
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();
+    try {
+      e.preventDefault();
 
-    const msg = inputRef.current.value;
-    console.log(msg);
+      const msg = inputRef.current.value;
+      console.log(msg);
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "user", text: { response: { message: msg } } },
-    ]);
-    inputRef.current.value = "";
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", text: { response: { message: msg } } },
+      ]);
+      inputRef.current.value = "";
 
-    const response = await fetchAIResponse({ userId: "1", message: msg });
-    console.log(response);
+      setIsLoading(true);
 
-    setMessages((prev) => [...prev, { role: "model", text: response }]);
-    console.log(response);
+      const response = await fetchAIResponse({ userId: "1", message: msg });
+      console.log(response);
+      if (typeof response === "string") {
+        setError(response);
+        return;
+      }
+
+      setMessages((prev) => [...prev, { role: "model", text: response }]);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function handleLogOut() {
     localStorage.removeItem("token");
     navigate("/login");
   }
-
-  console.log(messages);
 
   return (
     <div className="min-h-screen  bg-gray-900 text-white flex flex-col">
@@ -175,20 +187,33 @@ export const Chatbot = () => {
             </div>
           ))}
 
-          {/* {isTyping && (
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+          {isLoading && (
+            <div className="flex items-center gap-3  mb-8">
+              <div
+                className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-blue-600`}
+              >
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <div className="bg-white px-4 py-3 rounded-2xl shadow-sm">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-              </div>
+              <p className="animate-pulse text-gray-300 italic font-bold text-lg ">
+                Thinking for better response...
+              </p>
             </div>
-          )} */}
+          )}
+
+          {error && (
+            <div className="flex items-center gap-3  mb-8">
+              <div
+                className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-blue-600`}
+              >
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <p
+                className={`inline-block px-4 py-3 rounded-2xl font-bold bg-gray-800 text-white shadow-sm`}
+              >
+                {error}
+              </p>
+            </div>
+          )}
 
           {/* <div ref={messagesEndRef} /> */}
           <div ref={messageContainerRef} className="flex-1" />
