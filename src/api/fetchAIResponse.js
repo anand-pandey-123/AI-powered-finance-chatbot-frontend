@@ -1,16 +1,17 @@
-export const baseURL = import.meta.env.VITE_BACKEND_URL;
-
 export async function fetchAIResponse({ userId, message }) {
   try {
     console.log(userId, message);
 
-    const response = await fetch(`${baseURL}/chats/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId, message }),
-    });
+    const response = await fetch(
+      `http://155.138.232.79/mba/api/v1/chats/chat`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, message }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
